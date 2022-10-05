@@ -31,6 +31,7 @@ export const validateString = (value: any) => {
 };
 
 export const validateHexNumber = (value: string) => {
+  console.log("from validateHexNumber")
   validateHexString(value);
   if (value.length > 18) {
     throw new Error('hex number > 64 bits');
@@ -38,11 +39,13 @@ export const validateHexNumber = (value: string) => {
 };
 
 export const validateAddress = (data: any) => {
+  console.log("from validateAddress")
   if (typeof data !== 'string') {
     throw new Error(`invalid evm address, expected type String`);
   }
-
+  console.log("from validateAddress 2")
   validateHexString(data, 40);
+  console.log("after validateHexString")
 };
 
 export const validateBlock = (data: any) => {
@@ -75,6 +78,7 @@ export const validateTransaction = (data: any) => {
 };
 
 export const validateBlockHash = (data: any) => {
+  console.log("from validateBlockHash")
   if (typeof data !== 'string') {
     throw new Error(`invalid block hash, expected type String`);
   }
@@ -83,6 +87,7 @@ export const validateBlockHash = (data: any) => {
 };
 
 export const validateTrasactionHash = (data: any) => {
+  console.log("from validateTrasactionHash")
   if (typeof data !== 'string') {
     throw new Error(`invalid block hash, expected type String`);
   }

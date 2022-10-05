@@ -1,30 +1,30 @@
 version: '3'
 
 services:
-  mandala-node:
-    image: ghcr.io/acalanetwork/mandala-node:sha-e8998a4
-    ports:
-      - 9944:9944
-    command:
-      - --dev
-      - -lruntime=debug
-      - -levm=debug
-      - --ws-port=9944
-      - --ws-external
-      - --rpc-port=9933
-      - --rpc-external
-      - --rpc-cors=all
-      - --rpc-methods=unsafe
-      - --instant-sealing
-      - --tmp
+  # mandala-node:
+  #   image: ghcr.io/acalanetwork/mandala-node:sha-e8998a4
+  #   ports:
+  #     - 9944:9944
+  #   command:
+  #     - --dev
+  #     - -lruntime=debug
+  #     - -levm=debug
+  #     - --ws-port=9944
+  #     - --ws-external
+  #     - --rpc-port=9933
+  #     - --rpc-external
+  #     - --rpc-cors=all
+  #     - --rpc-methods=unsafe
+  #     - --instant-sealing
+  #     - --tmp
 
   eth-rpc-adaptor:
     image: acala/eth-rpc-adapter:7e4b68b
     ports:
       - 8545:8545
-    depends_on:
-      - mandala-node
+    # depends_on:
+    #   - mandala-node
     restart: always
     environment:
-      ENDPOINT_URL: ws://mandala-node:9944
+      ENDPOINT_URL: wss://laguna-chain-dev.hydrogenx.live
       LOCAL_MODE: 1
