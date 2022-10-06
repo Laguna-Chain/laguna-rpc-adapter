@@ -137,5 +137,13 @@ yarn test:dev # all tests
 - before sending any transaction:
   - don't change the default `gasPrice` or `GasLimit`, otherwise transaction will fail. [more info](https://evmdocs.acala.network/network/gas-parameters)
 
+## Laguna specific
+1) To run tests, first change the .env.example file to .env.
+2) Change the endpoint TEST_WS_ENDPOINT in .env to a local instance of the running chain
+3) Run the following command:
+```
+yarn test
+```
+
 ## For Production
 WIP

@@ -107,7 +107,7 @@ export interface BlockData {
   mixHash: `0x${string}`;
   difficulty: number;
   totalDifficulty: number;
-  gasLimit: BigNumber; // 15m for now. TODO: query this from blockchain
+  gasLimit: BigNumber; // 15m for now. TODO: query this from blockchainId
   gasUsed: BigNumber; // TODO: not full is 0
 
   miner: string;
@@ -351,57 +351,39 @@ export abstract class BaseProvider extends AbstractProvider {
     args: any[],
     _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
   ): Promise<T> => {
-    console.log("queryStorage 1")
     const blockTag = await this._ensureSafeModeBlockTagFinalization(await parseBlockTag(_blockTag));
-    console.log("queryStorage 1-1")
     const blockHash = await this._getBlockHash(blockTag);
-    console.log("queryStorage 2")
     const registry = await this.api.getBlockRegistry(u8aToU8a(blockHash));
-    console.log("queryStorage 3")
     if (!this.storages.get(registry)) {
       const storage = decorateStorage(registry.registry, registry.metadata.asLatest, registry.metadata.version);
       this.storages.set(registry, storage);
     }
-    console.log("queryStorage 4")
     const storage = this.storages.get(registry)!;
-    console.log("queryStorage 5")
     const [section, method] = module.split('.');
 
     const entry = storage[section][method];
-    console.log("module: ", module);
-    console.log("entry: ", entry)
-    console.log("args: ", args);
     const key = entry(...args);
-    console.log("queryStorage 6")
     const outputType = unwrapStorageType(registry.registry, entry.meta.type, entry.meta.modifier.isOptional);
-    console.log("queryStorage 7")
     const cacheKey = `${module}-${blockHash}-${args.join(',')}`;
     const cached = this._storageCache.get(cacheKey);
-    console.log("queryStorage 8")
     let input: Uint8Array | null = null;
 
     if (cached) {
       input = cached;
     } else {
       const value: any = await this.api.rpc.state.getStorage(key, blockHash);
-      console.log("queryStorage 9")
       const isEmpty = isNull(value);
-      console.log("queryStorage 10")
       // we convert to Uint8Array since it maps to the raw encoding, all
       // data will be correctly encoded (incl. numbers, excl. :code)
       input = isEmpty
         ? null
         : u8aToU8a(entry.meta.modifier.isOptional ? value.toU8a() : value.isSome ? value.unwrap().toU8a() : null);
-        console.log("queryStorage 11")
       this._storageCache.set(cacheKey, input);
-      console.log("queryStorage 12")
     }
-    console.log("queryStorage 13")
     const result = registry.registry.createTypeUnsafe(outputType, [input], {
       blockHash,
       isPedantic: !entry.meta.modifier.isOptional
     });
-    console.log("queryStorage 14")
     return result as any as T;
   };
 
@@ -467,12 +449,13 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   netVersion = async (): Promise<string> => {
-    return "999"; // this.api.consts.evmAccounts.chainId.toString()
+    return '999'; // this.api.consts.evmAccounts.chainId.toString()
   };
 
   chainId = async (): Promise<number> => {
     await this.api.isReadyOrError;
-    return 999; // (this.api.consts.evmAccounts.chainId as any).toNumber()
+    const result = ((await this.api.rpc.eth.chainId()) as any).toNumber();
+    return result;
   };
 
   getBlockNumber = async (): Promise<number> => {
@@ -576,22 +559,19 @@ export abstract class BaseProvider extends AbstractProvider {
     _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
   ): Promise<BigNumber> => {
     await this.getNetwork();
-    console.log(1);
     const blockTag = await this._ensureSafeModeBlockTagFinalization(await parseBlockTag(_blockTag));
-    console.log(2);
-    const { blockHash } = await resolveProperties({ // address,
+    const { blockHash } = await resolveProperties({
+      // address,
       // address: this._getAddress(addressOrName),
       blockHash: this._getBlockHash(blockTag)
     });
 
     // const substrateAddress = await this.getSubstrateAddress(address, blockHash);
-    console.log(3);
     const accountInfo = await this.queryStorage<FrameSystemAccountInfo>(
       'tokens.accounts',
-      [addressOrName, "Laguna"],
+      [addressOrName, 'Laguna'],
       blockHash
     );
-    console.log(4);
     return nativeToEthDecimal(accountInfo.data.free.toBigInt(), this.chainDecimal);
   };
 
