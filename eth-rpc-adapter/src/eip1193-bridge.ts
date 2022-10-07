@@ -51,8 +51,8 @@ class Eip1193BridgeImpl {
     this.#signer = signer;
   }
 
-  async web3_clientVersion(): Promise<string> {
-    return 'Acala/v0.0.1';
+  async web3_clientVersion(): Promise<any> {
+    return this.#provider.clientVersion();
   }
 
   // Query the synchronization progress and version information of indexer
@@ -155,7 +155,7 @@ class Eip1193BridgeImpl {
   async eth_getBalance(params: any[]): Promise<string> {
     // validate([{ type: 'address' }, { type: 'block' }], params);
     const balance = await this.#provider.getBalance(params[0], params[1]);
-    console.log("balance: ", balance);
+    console.log('balance: ', balance);
     return hexlifyRpcResult(balance);
   }
 
