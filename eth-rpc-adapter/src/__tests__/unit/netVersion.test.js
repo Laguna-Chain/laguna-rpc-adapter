@@ -6,7 +6,7 @@ dotenv.config();
 // set it to local chain
 const endpoint = process.env.TEST_WS_ENDPOINT || 'wss://laguna-chain-dev.hydrogenx.live';
 
-describe('eth_chainId', () => {
+describe('net_version', () => {
   let provider;
   let bridge;
 
@@ -20,8 +20,8 @@ describe('eth_chainId', () => {
     provider.disconnect();
   });
 
-  test('eth_chainId', async () => {
-    const result = await bridge.send('eth_chainId');
-    expect(result).toBe('0x3e8');
+  test('net_version', async () => {
+    const result = await bridge.send('net_version');
+    expect(result).toBe(1000);
   });
 });
