@@ -449,7 +449,14 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   netVersion = async (): Promise<string> => {
-    return '999'; // this.api.consts.evmAccounts.chainId.toString()
+    await this.api.isReadyOrError;
+    const result = ((await this.api.rpc.eth.chainId()) as any).toNumber();
+    return result;
+  };
+
+  clientVersion = async (): Promise<any> => {
+    const result = await this.api.rpc.eth.protocolVersion();
+    return `Laguna/v${result.toNumber()}`;
   };
 
   chainId = async (): Promise<number> => {
