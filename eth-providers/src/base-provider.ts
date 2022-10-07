@@ -455,7 +455,7 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   clientVersion = async (): Promise<any> => {
-    const result = await this.api.rpc.eth.protocolVersion();
+    const result = (await this.api.rpc.eth.protocolVersion()) as any;
     return `Laguna/v${result.toNumber()}`;
   };
 
