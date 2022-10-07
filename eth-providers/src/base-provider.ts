@@ -450,12 +450,12 @@ export abstract class BaseProvider extends AbstractProvider {
 
   netVersion = async (): Promise<string> => {
     await this.api.isReadyOrError;
-    const result = await this.api.rpc.net.version();
+    const result = (await this.api.rpc.net.version()) as any;
     return result;
   };
 
   clientVersion = async (): Promise<any> => {
-    const result = (await this.api.rpc.eth.protocolVersion()) as any;
+    const result = await this.api.rpc.eth.protocolVersion();
     return `Laguna/v${result.toNumber()}`;
   };
 
