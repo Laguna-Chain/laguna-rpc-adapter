@@ -398,7 +398,8 @@ class Eip1193BridgeImpl {
   async eth_getUncleCountByBlockHash(params: any[]): Promise<any> {
     validate([{ type: 'blockHash' }], params);
 
-    return HEX_ZERO;
+    const result = this.#provider.getUncleCountByBlockHash(params[0]);
+    return result;
   }
 
   async eth_getUncleCountByBlockNumber(params: any[]): Promise<any> {

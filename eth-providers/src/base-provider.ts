@@ -450,7 +450,7 @@ export abstract class BaseProvider extends AbstractProvider {
 
   netVersion = async (): Promise<string> => {
     await this.api.isReadyOrError;
-    const result = ((await this.api.rpc.eth.chainId()) as any).toNumber();
+    const result = await this.api.rpc.net.version();
     return result;
   };
 
@@ -566,6 +566,8 @@ export abstract class BaseProvider extends AbstractProvider {
     _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
   ): Promise<BigNumber> => {
     await this.getNetwork();
+    // const test = await this.api.rpc.evmcompat.source_to_mapped_address(addressOrName);
+    // console.log(test);
     const blockTag = await this._ensureSafeModeBlockTagFinalization(await parseBlockTag(_blockTag));
     const { blockHash } = await resolveProperties({
       // address,
@@ -1939,6 +1941,11 @@ export abstract class BaseProvider extends AbstractProvider {
     });
 
     return found;
+  };
+
+  getUncleCountByBlockHash = async (blockHash: string): Promise<number> => {
+    const result = await this.api.rpc.eth.getUncleCountByBlockHash(blockHash);
+    return result.toNumber();
   };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
