@@ -155,7 +155,6 @@ class Eip1193BridgeImpl {
   async eth_getBalance(params: any[]): Promise<string> {
     // validate([{ type: 'address' }, { type: 'block' }], params);
     const balance = await this.#provider.getBalance(params[0], params[1]);
-    console.log('balance: ', balance);
     return hexlifyRpcResult(balance);
   }
 
