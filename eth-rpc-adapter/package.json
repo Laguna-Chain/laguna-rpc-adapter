@@ -17,8 +17,8 @@
     "dev": "nodemon --watch \"*\" --ext \"js,ts,json\" --ignore \"src/**/*.{spec,test}.ts\" --exec \"ts-node src/index.ts\" | pino-pretty"
   },
   "dependencies": {
-    "@acala-network/eth-providers": "workspace:*",
     "@acala-network/eth-transactions": "workspace:*",
+    "@acala-network/eth-providers": "workspace:*",
     "@ethersproject/abstract-provider": "~5.5.0",
     "@ethersproject/abstract-signer": "~5.5.0",
     "@ethersproject/address": "~5.5.0",
@@ -65,7 +65,7 @@
   },
   "packageManager": "yarn@3.2.3",
   "workspaces": [
-    "../eth-providers",
-    "../eth-transactions"
+    "../eth-transactions",
+    "../eth-providers"
   ]
 }
