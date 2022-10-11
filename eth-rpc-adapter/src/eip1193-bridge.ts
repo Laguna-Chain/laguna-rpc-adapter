@@ -247,11 +247,10 @@ class Eip1193BridgeImpl {
    * @param BLOCKHASH [required] - a string representing the hash (32 bytes) of a block
    * @returns BLOCK TRANSACTION COUNT - a hex code of the integer representing the number of transactions in the provided block
    */
-  async eth_getBlockTransactionCountByHash(params: any[]): Promise<number> {
+  async eth_getBlockTransactionCountByHash(params: any[]): Promise<string> {
     validate([{ type: 'blockHash' }], params);
     const count = await this.#provider.getBlockTransactionCountByHash(params[0]);
-
-    return count;
+    return hexlifyRpcResult(count);
   }
 
   /**

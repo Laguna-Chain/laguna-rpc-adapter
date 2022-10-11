@@ -1964,8 +1964,10 @@ export abstract class BaseProvider extends AbstractProvider {
     return block;
   };
 
-  getBlockTransactionCountByHash = async (blockHash: string): Promise<number> =>
-    (await this.api.rpc.eth.getBlockTransactionCountByHash(blockHash)).toNumber();
+  getBlockTransactionCountByHash = async (blockHash: string): Promise<BigNumber> => {
+    const count = await this.api.rpc.eth.getBlockTransactionCountByHash(blockHash);
+    return nativeToEthDecimal(count.toNumber(), 18);
+  };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
   once = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('once');
