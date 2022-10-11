@@ -27,9 +27,16 @@ import '@polkadot/api-augment';
 import { createHeaderExtended } from '@polkadot/api-derive';
 import { VersionedRegistry } from '@polkadot/api/base/types';
 import { SubmittableExtrinsic } from '@polkadot/api/types';
-import type { GenericExtrinsic, Option, UInt } from '@polkadot/types';
+import type { GenericExtrinsic, Option, u256, UInt } from '@polkadot/types';
 import { decorateStorage, unwrapStorageType, Vec } from '@polkadot/types';
-import type { AccountId, EventRecord, Header, RuntimeVersion } from '@polkadot/types/interfaces';
+import type {
+  AccountId,
+  BlockNumber,
+  EthRichBlock,
+  EventRecord,
+  Header,
+  RuntimeVersion
+} from '@polkadot/types/interfaces';
 import { FrameSystemAccountInfo, FrameSystemEventRecord } from '@polkadot/types/lookup';
 import { Storage } from '@polkadot/types/metadata/decorate/types';
 import { isNull, u8aToHex, u8aToU8a } from '@polkadot/util';
@@ -87,6 +94,7 @@ import {
 import { BlockCache, CacheInspect } from './utils/BlockCache';
 import { TransactionReceipt as TransactionReceiptGQL, _Metadata } from './utils/gqlTypes';
 import { SubqlProvider } from './utils/subqlProvider';
+import { AnyNumber } from '@polkadot/types/types';
 
 export interface Eip1898BlockTag {
   blockNumber: string | number;
@@ -654,17 +662,13 @@ export abstract class BaseProvider extends AbstractProvider {
     });
 
     const contractInfo = await this.queryContractInfo(address, blockHash);
-
     if (contractInfo.isNone) {
       return '0x';
     }
 
     const codeHash = contractInfo.unwrap().codeHash;
-
     const api = await (blockHash ? this.api.at(blockHash) : this.api);
-
     const code = await api.query.evm.codes(codeHash);
-
     return code.toHex();
   };
 
@@ -1000,7 +1004,6 @@ export abstract class BaseProvider extends AbstractProvider {
     blockTag?: BlockTag | Promise<BlockTag>
   ): Promise<Option<EvmContractInfo>> => {
     const accountInfo = await this.queryAccountInfo(addressOrName, blockTag);
-
     if (accountInfo.isNone) {
       return this.api.createType<Option<EvmContractInfo>>('Option<EvmContractInfo>', null);
     }
@@ -1947,6 +1950,22 @@ export abstract class BaseProvider extends AbstractProvider {
     const result = await this.api.rpc.eth.getUncleCountByBlockHash(blockHash);
     return result.toNumber();
   };
+
+  getUncleByBlockHashAndIndex = async (blockHash: string, index: u256 | AnyNumber): Promise<EthRichBlock> => {
+    const block = await this.api.rpc.eth.getUncleByBlockHashAndIndex(blockHash, index);
+    return block;
+  };
+
+  getUncleByBlockNumberAndIndex = async (
+    blockNumber: AnyNumber | BlockNumber,
+    index: u256 | AnyNumber
+  ): Promise<EthRichBlock> => {
+    const block = await this.api.rpc.eth.getUncleByBlockNumberAndIndex(blockNumber, index);
+    return block;
+  };
+
+  getBlockTransactionCountByHash = async (blockHash: string): Promise<number> =>
+    (await this.api.rpc.eth.getBlockTransactionCountByHash(blockHash)).toNumber();
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
   once = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('once');

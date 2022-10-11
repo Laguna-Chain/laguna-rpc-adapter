@@ -247,10 +247,11 @@ class Eip1193BridgeImpl {
    * @param BLOCKHASH [required] - a string representing the hash (32 bytes) of a block
    * @returns BLOCK TRANSACTION COUNT - a hex code of the integer representing the number of transactions in the provided block
    */
-  async eth_getBlockTransactionCountByHash(params: any[]): Promise<string> {
+  async eth_getBlockTransactionCountByHash(params: any[]): Promise<number> {
     validate([{ type: 'blockHash' }], params);
-    const result = await this.#provider.getBlockData(params[0]);
-    return hexValue(result.transactions.length);
+    const count = await this.#provider.getBlockTransactionCountByHash(params[0]);
+
+    return count;
   }
 
   /**
@@ -410,14 +411,14 @@ class Eip1193BridgeImpl {
 
   async eth_getUncleByBlockHashAndIndex(params: any[]): Promise<any> {
     validate([{ type: 'blockHash' }, { type: 'hexNumber' }], params);
-
-    return null;
+    const block = await this.#provider.getUncleByBlockHashAndIndex(params[0], params[1]);
+    return block;
   }
 
   async eth_getUncleByBlockNumberAndIndex(params: any[]): Promise<any> {
     validate([{ type: 'block' }, { type: 'hexNumber' }], params);
-
-    return null;
+    const block = await this.#provider.getUncleByBlockHashAndIndex(params[0], params[1]);
+    return block;
   }
 
   async eth_isBlockFinalized(params: any[]): Promise<any> {
