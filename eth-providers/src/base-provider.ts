@@ -562,26 +562,16 @@ export abstract class BaseProvider extends AbstractProvider {
     throwNotImplemented('getBlockWithTransactions (please use `getBlockData` instead)');
 
   getBalance = async (
-    addressOrName: string | Promise<string>,
+    address: string | Promise<string>,
     _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
   ): Promise<BigNumber> => {
     await this.getNetwork();
-    // const test = await this.api.rpc.evmcompat.source_to_mapped_address(addressOrName);
-    // console.log(test);
     const blockTag = await this._ensureSafeModeBlockTagFinalization(await parseBlockTag(_blockTag));
-    const { blockHash } = await resolveProperties({
-      // address,
-      // address: this._getAddress(addressOrName),
-      blockHash: this._getBlockHash(blockTag)
-    });
+    let latestBlockNumber = blockTag;
+    if (!latestBlockNumber) latestBlockNumber = (await this.api.query.system.number()) as any;
+    const balance = await this.api.rpc.eth.getBalance(<string>address, latestBlockNumber);
 
-    // const substrateAddress = await this.getSubstrateAddress(address, blockHash);
-    const accountInfo = await this.queryStorage<FrameSystemAccountInfo>(
-      'tokens.accounts',
-      [addressOrName, 'Laguna'],
-      blockHash
-    );
-    return nativeToEthDecimal(accountInfo.data.free.toBigInt(), this.chainDecimal);
+    return nativeToEthDecimal(balance.toNumber(), 18);
   };
 
   getTransactionCount = async (
