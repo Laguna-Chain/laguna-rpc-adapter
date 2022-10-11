@@ -10,7 +10,7 @@
     "build:watch": "heft build",
     "watch": "rush build:watch --to @acala-network/eth-rpc-adapter",
     "lint": "tsc --noEmit && eslint \"**/*.ts\"",
-    "test": "jest **/unit/*.test.*",
+    "test": "jest **/__tests__/**/*.js",
     "test:dev": "mocha **/*.test.* --watch --watch-files **/*.test.ts",
     "test:CI": "mocha **/*.test.* --timeout 300000",
     "start": "ts-node src/index",

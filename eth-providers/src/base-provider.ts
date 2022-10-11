@@ -36,6 +36,7 @@ import { isNull, u8aToHex, u8aToU8a } from '@polkadot/util';
 import type BN from 'bn.js';
 import { BigNumber, BigNumberish, Wallet } from 'ethers';
 import { AccessListish } from 'ethers/lib/utils';
+import type { H160 } from '@polkadot/types/interfaces/types';
 import LRUCache from 'lru-cache';
 import {
   BIGNUMBER_ZERO,
@@ -585,10 +586,16 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   getTransactionCount = async (
-    addressOrName: string | Promise<string>,
+    address: string | Promise<string>,
     blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
   ): Promise<number> => {
-    return this.getEvmTransactionCount(addressOrName, await parseBlockTag(blockTag));
+    let latestBlockNumber = blockTag;
+    if (!latestBlockNumber) latestBlockNumber = (await this.api.query.system.number()) as any;
+    console.log('latestBlockNumber: ', latestBlockNumber);
+    console.log('address: ', address);
+    const result = await this.api.rpc.eth.getTransactionCount(<string>address, latestBlockNumber as any);
+    console.log('result: ', result);
+    return result as unknown as Promise<number>;
   };
 
   // TODO: test pending

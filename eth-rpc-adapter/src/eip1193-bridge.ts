@@ -119,7 +119,8 @@ class Eip1193BridgeImpl {
    * @returns TRANSACTION COUNT - a hex code of the integer representing the number of transactions sent from this address.
    */
   async eth_getTransactionCount(params: any[]): Promise<string> {
-    validate([{ type: 'address' }, { type: 'block' }], params);
+    // validate([{ type: 'address' }, { type: 'block' }], params);
+    console.log('testtesttest');
     const count = await this.#provider.getTransactionCount(params[0], params[1]);
     return hexValue(count);
   }
