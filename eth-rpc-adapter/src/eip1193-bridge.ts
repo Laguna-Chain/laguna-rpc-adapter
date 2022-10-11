@@ -416,7 +416,7 @@ class Eip1193BridgeImpl {
 
   async eth_getUncleByBlockNumberAndIndex(params: any[]): Promise<any> {
     validate([{ type: 'block' }, { type: 'hexNumber' }], params);
-    const block = await this.#provider.getUncleByBlockHashAndIndex(params[0], params[1]);
+    const block = await this.#provider.getUncleByBlockNumberAndIndex(params[0], params[1]);
     return block;
   }
 
