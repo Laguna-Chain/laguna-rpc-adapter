@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { AcalaEvmTX, checkSignatureType, parseTransaction } from '../../eth-transactions/lib/index';
 import type { EvmAccountInfo, EvmContractInfo } from '@acala-network/types/interfaces';
 import {
@@ -575,10 +576,20 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   getTransactionCount = async (
-    addressOrName: string | Promise<string>,
+    address: string | Promise<string>,
     blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
   ): Promise<number> => {
-    return this.getEvmTransactionCount(addressOrName, await parseBlockTag(blockTag));
+    let latestBlockNumber = blockTag;
+    if (!latestBlockNumber) latestBlockNumber = (await this.api.query.system.number()) as any;
+
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionCount',
+      params: [address, latestBlockNumber]
+    });
+
+    return response.data.result as unknown as Promise<number>;
   };
 
   // TODO: test pending
