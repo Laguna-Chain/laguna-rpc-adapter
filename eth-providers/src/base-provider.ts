@@ -640,11 +640,14 @@ export abstract class BaseProvider extends AbstractProvider {
     return accountInfo.nonce.toNumber();
   };
 
-  getCode = async (
-    addressOrName: string | Promise<string>,
-    _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
-  ): Promise<string> => {
-    throw new Error('getCode not supported');
+  getCode = async (address: string, _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag): Promise<string> => {
+    await this.getNetwork();
+
+    const contractInfo = (await this.api.query.contracts.contractInfoOf(address)).unwrap();
+    const codeHash = contractInfo.codeHash;
+
+    const codeStorage = (await this.api.query.contracts.codeStorage(codeHash)).unwrap();
+    return codeStorage.code.toString();
   };
 
   call = async (
