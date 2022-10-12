@@ -652,25 +652,7 @@ export abstract class BaseProvider extends AbstractProvider {
     addressOrName: string | Promise<string>,
     _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
   ): Promise<string> => {
-    await this.getNetwork();
-    const blockTag = await this._ensureSafeModeBlockTagFinalization(await parseBlockTag(_blockTag));
-
-    if ((await blockTag) === 'pending') return '0x';
-
-    const { address, blockHash } = await resolveProperties({
-      address: this._getAddress(addressOrName),
-      blockHash: this._getBlockHash(blockTag)
-    });
-
-    const contractInfo = await this.queryContractInfo(address, blockHash);
-    if (contractInfo.isNone) {
-      return '0x';
-    }
-
-    const codeHash = contractInfo.unwrap().codeHash;
-    const api = await (blockHash ? this.api.at(blockHash) : this.api);
-    const code = await api.query.evm.codes(codeHash);
-    return code.toHex();
+    throw new Error('getCode not supported');
   };
 
   call = async (
