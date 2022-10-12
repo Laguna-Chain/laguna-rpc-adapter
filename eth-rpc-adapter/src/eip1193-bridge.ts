@@ -249,8 +249,8 @@ class Eip1193BridgeImpl {
    */
   async eth_getBlockTransactionCountByHash(params: any[]): Promise<string> {
     validate([{ type: 'blockHash' }], params);
-    const result = await this.#provider.getBlockData(params[0]);
-    return hexValue(result.transactions.length);
+    const count = await this.#provider.getBlockTransactionCountByHash(params[0]);
+    return hexlifyRpcResult(count);
   }
 
   /**
@@ -410,14 +410,14 @@ class Eip1193BridgeImpl {
 
   async eth_getUncleByBlockHashAndIndex(params: any[]): Promise<any> {
     validate([{ type: 'blockHash' }, { type: 'hexNumber' }], params);
-
-    return null;
+    const block = await this.#provider.getUncleByBlockHashAndIndex(params[0], params[1]);
+    return block;
   }
 
   async eth_getUncleByBlockNumberAndIndex(params: any[]): Promise<any> {
     validate([{ type: 'block' }, { type: 'hexNumber' }], params);
-
-    return null;
+    const block = await this.#provider.getUncleByBlockNumberAndIndex(params[0], params[1]);
+    return block;
   }
 
   async eth_isBlockFinalized(params: any[]): Promise<any> {
