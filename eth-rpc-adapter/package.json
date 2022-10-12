@@ -17,8 +17,8 @@
     "dev": "nodemon --watch \"*\" --ext \"js,ts,json\" --ignore \"src/**/*.{spec,test}.ts\" --exec \"ts-node src/index.ts\" | pino-pretty"
   },
   "dependencies": {
-    "@acala-network/eth-transactions": "workspace:*",
     "@acala-network/eth-providers": "workspace:*",
+    "@acala-network/eth-transactions": "workspace:*",
     "@ethersproject/abstract-provider": "~5.5.0",
     "@ethersproject/abstract-signer": "~5.5.0",
     "@ethersproject/address": "~5.5.0",
@@ -27,7 +27,6 @@
     "@ethersproject/logger": "~5.5.0",
     "@ethersproject/wallet": "~5.5.0",
     "@polkadot/api": "8.1.1",
-    "axios": "~0.24.0",
     "body-parser": "~1.19.0",
     "connect": "~3.7.0",
     "cors": "~2.8.5",

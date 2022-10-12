@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { AcalaEvmTX, checkSignatureType, parseTransaction } from '../../eth-transactions/lib/index';
 import type { EvmAccountInfo, EvmContractInfo } from '@acala-network/types/interfaces';
 import {
@@ -36,7 +37,6 @@ import { isNull, u8aToHex, u8aToU8a } from '@polkadot/util';
 import type BN from 'bn.js';
 import { BigNumber, BigNumberish, Wallet } from 'ethers';
 import { AccessListish } from 'ethers/lib/utils';
-import type { H160 } from '@polkadot/types/interfaces/types';
 import LRUCache from 'lru-cache';
 import {
   BIGNUMBER_ZERO,
@@ -591,11 +591,15 @@ export abstract class BaseProvider extends AbstractProvider {
   ): Promise<number> => {
     let latestBlockNumber = blockTag;
     if (!latestBlockNumber) latestBlockNumber = (await this.api.query.system.number()) as any;
-    console.log('latestBlockNumber: ', latestBlockNumber);
-    console.log('address: ', address);
-    const result = await this.api.rpc.eth.getTransactionCount(<string>address, latestBlockNumber as any);
-    console.log('result: ', result);
-    return result as unknown as Promise<number>;
+
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionCount',
+      params: [address, latestBlockNumber]
+    });
+
+    return response.data.result as unknown as Promise<number>;
   };
 
   // TODO: test pending

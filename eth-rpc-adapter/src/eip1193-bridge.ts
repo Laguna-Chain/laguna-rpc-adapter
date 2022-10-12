@@ -120,7 +120,6 @@ class Eip1193BridgeImpl {
    */
   async eth_getTransactionCount(params: any[]): Promise<string> {
     // validate([{ type: 'address' }, { type: 'block' }], params);
-    console.log('testtesttest');
     const count = await this.#provider.getTransactionCount(params[0], params[1]);
     return hexValue(count);
   }
