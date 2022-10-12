@@ -131,7 +131,7 @@ class Eip1193BridgeImpl {
    * @returns CODE - a hex of the code at the given address
    */
   async eth_getCode(params: any[]): Promise<string> {
-    validate([{ type: 'address' }, { type: 'block' }], params);
+    // validate([{ type: 'address' }, { type: 'block' }], params);
     return this.#provider.getCode(params[0], params[1]);
   }
 
