@@ -735,16 +735,8 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   getGasPrice = async (): Promise<BigNumber> => {
-    if (this.richMode) {
-      return (await this._getEthGas()).gasPrice;
-    }
-
-    // tx_fee_per_gas + (current_block / 30 + 5) << 16 + 10
-    const txFeePerGas = BigNumber.from((this.api.consts.evm.txFeePerGas as UInt).toBigInt());
-    const currentHeader = await this.api.rpc.chain.getHeader();
-    const currentBlockNumber = BigNumber.from(currentHeader.number.toBigInt());
-
-    return txFeePerGas.add(currentBlockNumber.div(30).add(5).shl(16)).add(10);
+    const result = await this.api.rpc.eth.gasPrice();
+    return BigNumber.from(result.toNumber());
   };
 
   getFeeData = async (): Promise<FeeData> => {
