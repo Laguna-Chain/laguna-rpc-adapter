@@ -3,7 +3,7 @@ import { PROVIDER_ERRORS } from '@acala-network/eth-providers/lib/utils';
 import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Signer } from '@ethersproject/abstract-signer';
 import { getAddress } from '@ethersproject/address';
-import { hexlify } from '@ethersproject/bytes';
+import { hexlify, hexValue } from '@ethersproject/bytes';
 import EventEmitter from 'events';
 import WebSocket from 'ws';
 import { InvalidParams, MethodNotFound } from './errors';
