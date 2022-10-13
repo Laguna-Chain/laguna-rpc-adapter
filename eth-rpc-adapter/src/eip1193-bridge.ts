@@ -260,8 +260,8 @@ class Eip1193BridgeImpl {
    */
   async eth_getBlockTransactionCountByNumber(params: any[]): Promise<string> {
     validate([{ type: 'block' }], params);
-    const result = await this.#provider.getBlockData(params[0]);
-    return hexValue(result.transactions.length);
+    const result = await this.#provider.getBlockTransactionCountByNumber(params[0]);
+    return hexValue(result);
   }
 
   /**

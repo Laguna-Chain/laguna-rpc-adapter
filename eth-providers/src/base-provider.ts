@@ -1947,6 +1947,11 @@ export abstract class BaseProvider extends AbstractProvider {
     return nativeToEthDecimal(count.toNumber(), 18);
   };
 
+  getBlockTransactionCountByNumber = async (blockNumber: number): Promise<number> => {
+    const count = await this.api.rpc.eth.getBlockTransactionCountByNumber(blockNumber);
+    return count.toNumber();
+  };
+
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
   once = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('once');
   emit = (eventName: EventType, ...args: Array<any>): boolean => throwNotImplemented('emit');
