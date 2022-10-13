@@ -3,7 +3,7 @@ import { PROVIDER_ERRORS } from '@acala-network/eth-providers/lib/utils';
 import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Signer } from '@ethersproject/abstract-signer';
 import { getAddress } from '@ethersproject/address';
-import { hexValue } from '@ethersproject/bytes';
+import { hexlify } from '@ethersproject/bytes';
 import EventEmitter from 'events';
 import WebSocket from 'ws';
 import { InvalidParams, MethodNotFound } from './errors';
@@ -399,13 +399,14 @@ class Eip1193BridgeImpl {
     validate([{ type: 'blockHash' }], params);
 
     const result = this.#provider.getUncleCountByBlockHash(params[0]);
-    return result;
+    return hexlify(result as unknown as number);
   }
 
   async eth_getUncleCountByBlockNumber(params: any[]): Promise<any> {
     validate([{ type: 'block' }], params);
 
-    return HEX_ZERO;
+    const result = this.#provider.getUncleCountByBlockNumber(params[0]);
+    return hexlify(result);
   }
 
   async eth_getUncleByBlockHashAndIndex(params: any[]): Promise<any> {
