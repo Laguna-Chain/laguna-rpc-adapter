@@ -1929,6 +1929,11 @@ export abstract class BaseProvider extends AbstractProvider {
     return result.toNumber();
   };
 
+  getUncleCountByBlockNumber = async (blockNumber: number): Promise<number> => {
+    const result = await this.api.rpc.eth.getUncleCountByBlockNumber(blockNumber);
+    return result.toNumber();
+  };
+
   getUncleByBlockHashAndIndex = async (blockHash: string, index: u256 | AnyNumber): Promise<EthRichBlock> => {
     const block = await this.api.rpc.eth.getUncleByBlockHashAndIndex(blockHash, index);
     return block;
@@ -1951,6 +1956,8 @@ export abstract class BaseProvider extends AbstractProvider {
     const count = await this.api.rpc.eth.getBlockTransactionCountByNumber(blockNumber);
     return count.toNumber();
   };
+
+  getTransactionByBlockHashAndIndex = async (blockHash: string, index: number) => {};
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
   once = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('once');
