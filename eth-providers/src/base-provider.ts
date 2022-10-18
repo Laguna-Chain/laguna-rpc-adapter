@@ -1722,28 +1722,30 @@ export abstract class BaseProvider extends AbstractProvider {
     throwNotImplemented('getTransactionReceipt (please use `getTXReceiptByHash` instead)');
 
   getTXReceiptByHash = async (txHash: string): Promise<TXReceipt | null> => {
-    const tx = this.localMode
-      ? await runWithRetries(this._getMinedTXReceipt.bind(this), [txHash])
-      : await this._getMinedTXReceipt(txHash);
-    if (!tx) return null;
-
-    return this.formatter.receipt({
-      to: tx.to || null,
-      from: tx.from,
-      contractAddress: tx.contractAddress || null,
-      transactionIndex: tx.transactionIndex,
-      gasUsed: tx.gasUsed,
-      logsBloom: tx.logsBloom,
-      blockHash: tx.blockHash,
-      transactionHash: tx.transactionHash,
-      logs: Array.isArray(tx.logs) ? tx.logs : (tx.logs.nodes as Log[]),
-      blockNumber: tx.blockNumber,
-      cumulativeGasUsed: tx.cumulativeGasUsed,
-      type: tx.type,
-      status: tx.status,
-      effectiveGasPrice: tx.effectiveGasPrice,
-      confirmations: (await this._getBlockHeader('latest')).number.toNumber() - tx.blockNumber
-    });
+    // const tx = this.localMode
+    //   ? await runWithRetries(this._getMinedTXReceipt.bind(this), [txHash])
+    //   : await this._getMinedTXReceipt(txHash);
+    // if (!tx) return null;
+    const tx = await this.api.rpc.eth.getTransactionReceipt(txHash);
+    const receipt = {
+      to: tx.to.unwrap().toHex() || null,
+      from: tx.from.unwrap().toHex(),
+      contractAddress: tx.contractAddress.unwrapOr(null),
+      transactionIndex: tx.transactionIndex.unwrap().toNumber(),
+      gasUsed: tx.gasUsed.unwrapOr(0),
+      logsBloom: tx.logsBloom.toHex(),
+      blockHash: tx.blockHash.unwrap().toHex(),
+      transactionHash: tx.transactionHash.unwrap().toHex(),
+      logs: Array.isArray(tx.logs) ? tx.logs : [], //       logs: Array.isArray(tx.logs) ? tx.logs : (tx.logs.nodes as Log[]),
+      blockNumber: tx.blockNumber.unwrap().toNumber(),
+      cumulativeGasUsed: tx.cumulativeGasUsed.toBigInt(),
+      type: '0x0', //previously tx.type
+      status: tx.statusCode.unwrapOr(0),
+      effectiveGasPrice: '0x0' // previously tx.effectiveGasPrice,
+      // confirmations: (await this._getBlockHeader('latest')).number.toNumber() - tx.blockNumber
+    };
+    console.log(receipt);
+    return this.formatter.receipt(receipt);
   };
 
   _getBlockNumberFromTag = async (blockTag: BlockTag): Promise<number> => {
