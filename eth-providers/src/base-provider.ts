@@ -672,19 +672,22 @@ export abstract class BaseProvider extends AbstractProvider {
       blockHash: this._getBlockHash(blockTag)
     });
 
-    const callRequest: CallRequest = {
-      from: resolved.transaction.from,
-      to: resolved.transaction.to,
-      gasLimit: resolved.transaction.gasLimit?.toBigInt(),
-      storageLimit: undefined,
-      value: resolved.transaction.value?.toBigInt(),
-      data: resolved.transaction.data,
-      accessList: resolved.transaction.accessList
+    let chainId = transaction?.chainId;
+    if (!chainId) chainId = this.chainId();
+
+    const callRequest = {
+      nonce: transaction.nonce,
+      gas_price: resolved.transaction?.gasPrice,
+      gas_limit: resolved.transaction?.gasLimit,
+      action: resolved.transaction?.to ? 'Call' : 'Create',
+      value: resolved.transaction?.value,
+      input: resolved.transaction.data,
+      chain_id: chainId
     };
 
     const data = resolved.blockHash
-      ? await (this.api.rpc as any).evm.call(callRequest, resolved.blockHash)
-      : await (this.api.rpc as any).evm.call(callRequest);
+      ? await (this.api.rpc as any).eth.call(callRequest, resolved.blockHash)
+      : await (this.api.rpc as any).eth.call(callRequest);
 
     return data.toHex();
   };
