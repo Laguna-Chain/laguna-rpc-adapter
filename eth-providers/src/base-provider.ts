@@ -1968,6 +1968,16 @@ export abstract class BaseProvider extends AbstractProvider {
     return response.data;
   };
 
+  getTransactionByBlockNumberAndIndex = async (blockNumber: number, index: number) => {
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionByBlockNumberAndIndex',
+      params: [blockNumber, index]
+    });
+    return response.data;
+  };
+
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
   once = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('once');
   emit = (eventName: EventType, ...args: Array<any>): boolean => throwNotImplemented('emit');
