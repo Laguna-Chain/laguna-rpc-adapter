@@ -382,10 +382,10 @@ class Eip1193BridgeImpl {
   }
 
   async eth_getTransactionByBlockHashAndIndex(params: any[]): Promise<any> {
-    validate([{ type: 'blockHash' }, { type: 'hexNumber' }], params);
+    // validate([{ type: 'blockHash' }, { type: 'hexNumber' }], params);
 
-    const res = await this.#provider.getTransactionReceiptAtBlock(params[1], params[0]);
-    return hexlifyRpcResult(res);
+    const res = await this.#provider.getTransactionByBlockHashAndIndex(params[0], params[1]);
+    return res;
   }
 
   async eth_getTransactionByBlockNumberAndIndex(params: any[]): Promise<any> {
