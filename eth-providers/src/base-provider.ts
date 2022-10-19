@@ -1957,7 +1957,16 @@ export abstract class BaseProvider extends AbstractProvider {
     return count.toNumber();
   };
 
-  getTransactionByBlockHashAndIndex = async (blockHash: string, index: number) => {};
+  getTransactionByBlockHashAndIndex = async (blockHash: string, index: number) => {
+    // using axios as polkadot api returns different response structure
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionByBlockHashAndIndex',
+      params: [blockHash, index]
+    });
+    return response.data;
+  };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
   once = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('once');
