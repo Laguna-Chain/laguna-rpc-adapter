@@ -1146,11 +1146,9 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   sendRawTransaction = async (rawTx: string): Promise<string> => {
-    const { extrinsic } = await this.prepareTransaction(rawTx);
+    const result = await this.api.rpc.eth.sendRawTransaction(rawTx);
 
-    await extrinsic.send();
-
-    return extrinsic.hash.toHex();
+    return result as unknown as string;
   };
 
   sendTransaction = async (signedTransaction: string | Promise<string>): Promise<TransactionResponse> => {
