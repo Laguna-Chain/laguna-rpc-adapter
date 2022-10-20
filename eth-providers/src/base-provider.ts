@@ -28,12 +28,13 @@ import '@polkadot/api-augment';
 import { createHeaderExtended } from '@polkadot/api-derive';
 import { VersionedRegistry } from '@polkadot/api/base/types';
 import { SubmittableExtrinsic } from '@polkadot/api/types';
-import type { GenericExtrinsic, Option, u256, UInt } from '@polkadot/types';
+import { GenericExtrinsic, Option, u256, UInt } from '@polkadot/types';
 import { decorateStorage, unwrapStorageType, Vec } from '@polkadot/types';
 import type {
   AccountId,
   BlockNumber,
   EthRichBlock,
+  EthTransaction,
   EventRecord,
   Header,
   RuntimeVersion
@@ -41,7 +42,7 @@ import type {
 import { FrameSystemAccountInfo, FrameSystemEventRecord } from '@polkadot/types/lookup';
 import { Storage } from '@polkadot/types/metadata/decorate/types';
 import { isNull, u8aToHex, u8aToU8a } from '@polkadot/util';
-import type BN from 'bn.js';
+import BN from 'bn.js';
 import { BigNumber, BigNumberish, Wallet } from 'ethers';
 import { AccessListish } from 'ethers/lib/utils';
 import LRUCache from 'lru-cache';
@@ -1476,17 +1477,19 @@ export abstract class BaseProvider extends AbstractProvider {
     transactionIndex: number;
     isExtrinsicFailed: boolean;
   }> => {
+    console.log(blockHash, targetTx);
     const [block, blockEvents] = await Promise.all([
       this.api.rpc.chain.getBlock(blockHash),
       this.queryStorage<Vec<FrameSystemEventRecord>>('system.events', [], blockHash)
     ]);
-
+    console.log('block:', JSON.stringify(block));
+    console.log('blockEvents:', JSON.stringify(blockEvents));
     const { transactionHash, transactionIndex, extrinsicIndex, isExtrinsicFailed } = getTransactionIndexAndHash(
       targetTx,
       block.block.extrinsics,
       blockEvents
     );
-
+    console.log(transactionHash, transactionIndex, extrinsicIndex, isExtrinsicFailed);
     const extrinsicEvents = blockEvents.filter(
       (event) => event.phase.isApplyExtrinsic && event.phase.asApplyExtrinsic.toNumber() === extrinsicIndex
     );
@@ -1673,77 +1676,60 @@ export abstract class BaseProvider extends AbstractProvider {
     throwNotImplemented('getTransaction (deprecated: please use getTransactionByHash)');
 
   getTransactionByHash = async (txHash: string): Promise<TX | null> => {
-    if (!this.localMode) {
-      // local mode is for local instant-sealing node
-      // so ignore pending tx to avoid some timing issue
-      const pendingTX = await this._getPendingTX(txHash);
-      if (pendingTX) return pendingTX;
-    }
-
-    const tx = this.localMode
-      ? await runWithRetries(this._getMinedTXReceipt.bind(this), [txHash])
-      : await this._getMinedTXReceipt(txHash);
-
-    if (!tx) return null;
-
-    let extraData;
-
-    try {
-      const { extrinsic } = await this._parseTxAtBlock(tx.blockHash, txHash);
-      extraData = parseExtrinsic(extrinsic);
-    } catch (e) {
-      // virtual tx
-      extraData = {
-        value: '0x0',
-        gas: 2_100_000,
-        input: '0x',
-        nonce: 0,
-        ...DUMMY_V_R_S
-      };
-    }
-
-    return {
-      blockHash: tx.blockHash,
-      blockNumber: tx.blockNumber,
-      transactionIndex: tx.transactionIndex,
-      hash: tx.transactionHash,
-      from: tx.from,
-      gasPrice: tx.effectiveGasPrice,
-      ...extraData,
-
-      // overrides to in parseExtrinsic, in case of non-evm extrinsic, such as dex.xxx
-      to: tx.to || null
-    };
+    // const tx = await this.api.rpc.eth.getTransactionByHash(txHash);
+    // console.log(tx);
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionByHash',
+      params: [txHash]
+    });
+    const { result } = response.data;
+    if (!result) return null;
+    delete result.accessList;
+    delete result.type;
+    delete result.chainId;
+    delete result.standardV;
+    delete result.raw;
+    delete result.publicKey;
+    delete result.creates;
+    return result as TX;
   };
 
   getTransactionReceipt = async (txHash: string): Promise<TransactionReceipt> =>
     throwNotImplemented('getTransactionReceipt (please use `getTXReceiptByHash` instead)');
 
   getTXReceiptByHash = async (txHash: string): Promise<TXReceipt | null> => {
-    // const tx = this.localMode
-    //   ? await runWithRetries(this._getMinedTXReceipt.bind(this), [txHash])
-    //   : await this._getMinedTXReceipt(txHash);
-    // if (!tx) return null;
-    const tx = await this.api.rpc.eth.getTransactionReceipt(txHash);
-    const receipt = {
-      to: tx.to.unwrap().toHex() || null,
-      from: tx.from.unwrap().toHex(),
-      contractAddress: tx.contractAddress.unwrapOr(null),
-      transactionIndex: tx.transactionIndex.unwrap().toNumber(),
-      gasUsed: tx.gasUsed.unwrapOr(0),
-      logsBloom: tx.logsBloom.toHex(),
-      blockHash: tx.blockHash.unwrap().toHex(),
-      transactionHash: tx.transactionHash.unwrap().toHex(),
-      logs: Array.isArray(tx.logs) ? tx.logs : [], //       logs: Array.isArray(tx.logs) ? tx.logs : (tx.logs.nodes as Log[]),
-      blockNumber: tx.blockNumber.unwrap().toNumber(),
-      cumulativeGasUsed: tx.cumulativeGasUsed.toBigInt(),
-      type: '0x0', //previously tx.type
-      status: tx.statusCode.unwrapOr(0),
-      effectiveGasPrice: '0x0' // previously tx.effectiveGasPrice,
-      // confirmations: (await this._getBlockHeader('latest')).number.toNumber() - tx.blockNumber
-    };
-    console.log(receipt);
-    return this.formatter.receipt(receipt);
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionReceipt',
+      params: [txHash]
+    });
+    const { result } = response.data;
+    if (!result) return null;
+
+    return result as TXReceipt;
+    // const tx = await this.api.rpc.eth.getTransactionReceipt(txHash);
+    // console.log('tx.to:', tx.to.unwrapOr(null));
+    // const receipt = {
+    //   to: tx.to.unwrapOr(null) ? tx.to.unwrap().toHex() : null,
+    //   from: tx.from.unwrap().toHex(),
+    //   contractAddress: tx.contractAddress.unwrapOr(null) ? tx.contractAddress.unwrap().toHex() : null,
+    //   transactionIndex: tx.transactionIndex.unwrap().toHex(),
+    //   gasUsed: tx.gasUsed.unwrapOr(0) ? tx.gasUsed.unwrap().toBigInt() : BigInt(0),
+    //   logsBloom: tx.logsBloom.toHex(),
+    //   blockHash: tx.blockHash.unwrap().toHex(),
+    //   transactionHash: tx.transactionHash.unwrap().toHex(),
+    //   logs: Array.isArray(tx.logs) ? tx.logs : [], //       logs: Array.isArray(tx.logs) ? tx.logs : (tx.logs.nodes as Log[]),
+    //   blockNumber: tx.blockNumber.unwrap().toNumber(),
+    //   cumulativeGasUsed: tx.cumulativeGasUsed.toBigInt(),
+    //   type: '0x0', //previously tx.type
+    //   status: tx.statusCode.unwrapOr(null) ? tx.statusCode.unwrap().toNumber() : null,
+    //   effectiveGasPrice: '0x0' // previously tx.effectiveGasPrice,
+    //   // confirmations: (await this._getBlockHeader('latest')).number.toNumber() - tx.blockNumber
+    // };
+    // return this.formatter.receipt(receipt);
   };
 
   _getBlockNumberFromTag = async (blockTag: BlockTag): Promise<number> => {
@@ -1965,7 +1951,7 @@ export abstract class BaseProvider extends AbstractProvider {
       method: 'eth_getTransactionByBlockHashAndIndex',
       params: [blockHash, index]
     });
-    return response.data;
+    return response.data.result;
   };
 
   getTransactionByBlockNumberAndIndex = async (blockNumber: number, index: number) => {
@@ -1975,7 +1961,7 @@ export abstract class BaseProvider extends AbstractProvider {
       method: 'eth_getTransactionByBlockNumberAndIndex',
       params: [blockNumber, index]
     });
-    return response.data;
+    return response.data.result;
   };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
