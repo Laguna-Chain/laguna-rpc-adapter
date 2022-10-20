@@ -1477,19 +1477,16 @@ export abstract class BaseProvider extends AbstractProvider {
     transactionIndex: number;
     isExtrinsicFailed: boolean;
   }> => {
-    console.log(blockHash, targetTx);
     const [block, blockEvents] = await Promise.all([
       this.api.rpc.chain.getBlock(blockHash),
       this.queryStorage<Vec<FrameSystemEventRecord>>('system.events', [], blockHash)
     ]);
-    console.log('block:', JSON.stringify(block));
-    console.log('blockEvents:', JSON.stringify(blockEvents));
+
     const { transactionHash, transactionIndex, extrinsicIndex, isExtrinsicFailed } = getTransactionIndexAndHash(
       targetTx,
       block.block.extrinsics,
       blockEvents
     );
-    console.log(transactionHash, transactionIndex, extrinsicIndex, isExtrinsicFailed);
     const extrinsicEvents = blockEvents.filter(
       (event) => event.phase.isApplyExtrinsic && event.phase.asApplyExtrinsic.toNumber() === extrinsicIndex
     );
@@ -1676,8 +1673,6 @@ export abstract class BaseProvider extends AbstractProvider {
     throwNotImplemented('getTransaction (deprecated: please use getTransactionByHash)');
 
   getTransactionByHash = async (txHash: string): Promise<TX | null> => {
-    // const tx = await this.api.rpc.eth.getTransactionByHash(txHash);
-    // console.log(tx);
     const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
       jsonrpc: '2.0',
       id: 'id',
@@ -1711,7 +1706,6 @@ export abstract class BaseProvider extends AbstractProvider {
 
     return result as TXReceipt;
     // const tx = await this.api.rpc.eth.getTransactionReceipt(txHash);
-    // console.log('tx.to:', tx.to.unwrapOr(null));
     // const receipt = {
     //   to: tx.to.unwrapOr(null) ? tx.to.unwrap().toHex() : null,
     //   from: tx.from.unwrap().toHex(),
