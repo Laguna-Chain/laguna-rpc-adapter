@@ -1146,11 +1146,9 @@ export abstract class BaseProvider extends AbstractProvider {
   };
 
   sendRawTransaction = async (rawTx: string): Promise<string> => {
-    const { extrinsic } = await this.prepareTransaction(rawTx);
+    const result = await this.api.rpc.eth.sendRawTransaction(rawTx);
 
-    await extrinsic.send();
-
-    return extrinsic.hash.toHex();
+    return result as unknown as string;
   };
 
   sendTransaction = async (signedTransaction: string | Promise<string>): Promise<TransactionResponse> => {
@@ -1959,7 +1957,26 @@ export abstract class BaseProvider extends AbstractProvider {
     return count.toNumber();
   };
 
-  getTransactionByBlockHashAndIndex = async (blockHash: string, index: number) => {};
+  getTransactionByBlockHashAndIndex = async (blockHash: string, index: number) => {
+    // using axios as polkadot api returns different response structure
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionByBlockHashAndIndex',
+      params: [blockHash, index]
+    });
+    return response.data;
+  };
+
+  getTransactionByBlockNumberAndIndex = async (blockNumber: number, index: number) => {
+    const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
+      jsonrpc: '2.0',
+      id: 'id',
+      method: 'eth_getTransactionByBlockNumberAndIndex',
+      params: [blockNumber, index]
+    });
+    return response.data;
+  };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
   once = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('once');
