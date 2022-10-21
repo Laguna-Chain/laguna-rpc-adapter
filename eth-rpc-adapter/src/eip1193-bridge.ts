@@ -337,6 +337,8 @@ class Eip1193BridgeImpl {
     if (!res) return null;
 
     // @ts-ignore
+    delete res.effectiveGasPrice;
+    // @ts-ignore
     delete res.byzantium;
     // @ts-ignore
     delete res.confirmations;
@@ -405,7 +407,7 @@ class Eip1193BridgeImpl {
   async eth_getUncleCountByBlockNumber(params: any[]): Promise<any> {
     validate([{ type: 'block' }], params);
 
-    const result = this.#provider.getUncleCountByBlockNumber(params[0]);
+    const result = await this.#provider.getUncleCountByBlockNumber(params[0]);
     return hexlify(result);
   }
 
