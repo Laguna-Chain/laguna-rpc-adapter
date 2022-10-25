@@ -43,7 +43,8 @@ import { FrameSystemAccountInfo, FrameSystemEventRecord } from '@polkadot/types/
 import { Storage } from '@polkadot/types/metadata/decorate/types';
 import { isNull, u8aToHex, u8aToU8a } from '@polkadot/util';
 import BN from 'bn.js';
-import { BigNumber, BigNumberish, Wallet } from 'ethers';
+import { BigNumber, BigNumberish, utils as ethersUtils, Wallet } from 'ethers';
+
 import { AccessListish } from 'ethers/lib/utils';
 import LRUCache from 'lru-cache';
 import {
@@ -1681,6 +1682,9 @@ export abstract class BaseProvider extends AbstractProvider {
     });
     const { result } = response.data;
     if (!result) return null;
+
+    const transactionData = ethersUtils.parseTransaction(result.raw);
+
     delete result.accessList;
     delete result.type;
     delete result.chainId;
@@ -1688,7 +1692,11 @@ export abstract class BaseProvider extends AbstractProvider {
     delete result.raw;
     delete result.publicKey;
     delete result.creates;
-    return result as TX;
+
+    return {
+      ...result,
+      from: transactionData.from
+    } as TX;
   };
 
   getTransactionReceipt = async (txHash: string): Promise<TransactionReceipt> =>
@@ -1704,7 +1712,20 @@ export abstract class BaseProvider extends AbstractProvider {
     const { result } = response.data;
     if (!result) return null;
 
-    return result as TXReceipt;
+    const transaction = await this.getTransactionByHash(txHash);
+
+    delete result.accessList;
+    delete result.type;
+    delete result.chainId;
+    delete result.standardV;
+    delete result.raw;
+    delete result.publicKey;
+    delete result.creates;
+    return {
+      ...result,
+      from: transaction!.from
+    } as TXReceipt;
+
     // const tx = await this.api.rpc.eth.getTransactionReceipt(txHash);
     // const receipt = {
     //   to: tx.to.unwrapOr(null) ? tx.to.unwrap().toHex() : null,
@@ -1937,7 +1958,7 @@ export abstract class BaseProvider extends AbstractProvider {
     return count.toNumber();
   };
 
-  getTransactionByBlockHashAndIndex = async (blockHash: string, index: number) => {
+  getTransactionByBlockHashAndIndex = async (blockHash: string, index: number): Promise<TX | null> => {
     // using axios as polkadot api returns different response structure
     const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
       jsonrpc: '2.0',
@@ -1945,17 +1966,47 @@ export abstract class BaseProvider extends AbstractProvider {
       method: 'eth_getTransactionByBlockHashAndIndex',
       params: [blockHash, index]
     });
-    return response.data.result;
+
+    const { result } = response.data;
+    if (!result) return null;
+    const transactionData = ethersUtils.parseTransaction(result.raw);
+    delete result.accessList;
+    delete result.type;
+    delete result.chainId;
+    delete result.standardV;
+    delete result.raw;
+    delete result.publicKey;
+    delete result.creates;
+    return {
+      ...result,
+      from: transactionData.from
+    } as TX;
+
   };
 
-  getTransactionByBlockNumberAndIndex = async (blockNumber: number, index: number) => {
+  getTransactionByBlockNumberAndIndex = async (blockNumber: number, index: number): Promise<TX | null> => {
     const response = await axios.post('https://laguna-chain-dev.hydrogenx.live/json-rpc', {
       jsonrpc: '2.0',
       id: 'id',
       method: 'eth_getTransactionByBlockNumberAndIndex',
       params: [blockNumber, index]
     });
-    return response.data.result;
+
+    const { result } = response.data;
+    if (!result) return null;
+    const transactionData = ethersUtils.parseTransaction(result.raw);
+    delete result.accessList;
+    delete result.type;
+    delete result.chainId;
+    delete result.standardV;
+    delete result.raw;
+    delete result.publicKey;
+    delete result.creates;
+    return {
+      ...result,
+      from: transactionData.from
+    } as TX;
+
   };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
