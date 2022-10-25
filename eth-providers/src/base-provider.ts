@@ -44,6 +44,7 @@ import { Storage } from '@polkadot/types/metadata/decorate/types';
 import { isNull, u8aToHex, u8aToU8a } from '@polkadot/util';
 import BN from 'bn.js';
 import { BigNumber, BigNumberish, utils as ethersUtils, Wallet } from 'ethers';
+
 import { AccessListish } from 'ethers/lib/utils';
 import LRUCache from 'lru-cache';
 import {
@@ -1681,7 +1682,9 @@ export abstract class BaseProvider extends AbstractProvider {
     });
     const { result } = response.data;
     if (!result) return null;
+
     const transactionData = ethersUtils.parseTransaction(result.raw);
+
     delete result.accessList;
     delete result.type;
     delete result.chainId;
@@ -1689,6 +1692,7 @@ export abstract class BaseProvider extends AbstractProvider {
     delete result.raw;
     delete result.publicKey;
     delete result.creates;
+
     return {
       ...result,
       from: transactionData.from
@@ -1707,6 +1711,7 @@ export abstract class BaseProvider extends AbstractProvider {
     });
     const { result } = response.data;
     if (!result) return null;
+
     const transaction = await this.getTransactionByHash(txHash);
 
     delete result.accessList;
@@ -1720,6 +1725,7 @@ export abstract class BaseProvider extends AbstractProvider {
       ...result,
       from: transaction!.from
     } as TXReceipt;
+
     // const tx = await this.api.rpc.eth.getTransactionReceipt(txHash);
     // const receipt = {
     //   to: tx.to.unwrapOr(null) ? tx.to.unwrap().toHex() : null,
@@ -1960,6 +1966,7 @@ export abstract class BaseProvider extends AbstractProvider {
       method: 'eth_getTransactionByBlockHashAndIndex',
       params: [blockHash, index]
     });
+
     const { result } = response.data;
     if (!result) return null;
     const transactionData = ethersUtils.parseTransaction(result.raw);
@@ -1974,6 +1981,7 @@ export abstract class BaseProvider extends AbstractProvider {
       ...result,
       from: transactionData.from
     } as TX;
+
   };
 
   getTransactionByBlockNumberAndIndex = async (blockNumber: number, index: number): Promise<TX | null> => {
@@ -1983,6 +1991,7 @@ export abstract class BaseProvider extends AbstractProvider {
       method: 'eth_getTransactionByBlockNumberAndIndex',
       params: [blockNumber, index]
     });
+
     const { result } = response.data;
     if (!result) return null;
     const transactionData = ethersUtils.parseTransaction(result.raw);
@@ -1997,6 +2006,7 @@ export abstract class BaseProvider extends AbstractProvider {
       ...result,
       from: transactionData.from
     } as TX;
+
   };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
