@@ -142,7 +142,7 @@ class Eip1193BridgeImpl {
    * @returns RETURN VALUE - the return value of the executed contract method.
    */
   async eth_call(params: any[]): Promise<string> {
-    validate([{ type: 'transaction' }, { type: 'block' }], params);
+    // validate([{ type: 'transaction' }, { type: 'block' }], params);
     return this.#provider.call(params[0], params[1]);
   }
 
@@ -280,7 +280,7 @@ class Eip1193BridgeImpl {
    * @returns GAS USED - the amount of gas used.
    */
   async eth_estimateGas(params: any[]): Promise<string> {
-    validate([{ type: 'transaction' }], params);
+    // validate([{ type: 'transaction' }], params);
     const val = await this.#provider.estimateGas(params[0]);
     return hexValue(val);
   }

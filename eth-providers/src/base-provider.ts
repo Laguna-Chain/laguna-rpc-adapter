@@ -774,16 +774,48 @@ export abstract class BaseProvider extends AbstractProvider {
    * @param transaction The transaction to estimate the gas of
    * @returns The estimated gas used by this transaction
    */
-  estimateGas = async (transaction: Deferrable<TransactionRequest>): Promise<BigNumber> => {
-    await this.call(transaction);
-    const { storageDepositPerByte, txFeePerGas } = this._getGasConsts();
-    const gasPrice = (await transaction.gasPrice) || (await this.getGasPrice());
-    const storageEntryLimit = BigNumber.from(gasPrice).and(0xffff);
-    const storageEntryDeposit = BigNumber.from(storageDepositPerByte).mul(64);
-    const storageGasLimit = storageEntryLimit.mul(storageEntryDeposit).div(txFeePerGas);
+  estimateGas = async (
+    transaction: Deferrable<TransactionRequest>,
+    _blockTag?: BlockTag | Promise<BlockTag> | Eip1898BlockTag
+  ): Promise<BigNumber> => {
+    await this.getNetwork();
+    const blockTag = await this._ensureSafeModeBlockTagFinalization(await parseBlockTag(_blockTag));
 
-    const resources = await this.estimateResources(transaction);
-    return resources.gas.add(storageGasLimit);
+    const resolved = await resolveProperties({
+      transaction: this._getTransactionRequest(transaction),
+      blockHash: this._getBlockHash(blockTag)
+    });
+
+    const callRequest: any = {
+      nonce: transaction.nonce,
+      gasPrice: resolved.transaction?.gasPrice,
+      input: resolved.transaction.data
+    };
+
+    if (resolved.transaction?.value) {
+      callRequest['value'] = resolved.transaction?.value;
+    }
+    if (resolved.transaction?.maxFeePerGas) {
+      callRequest['maxFeePerGas'] = resolved.transaction?.maxFeePerGas;
+    }
+    if (resolved.transaction?.maxPriorityFeePerGas) {
+      callRequest['maxPriorityFeePerGas'] = resolved.transaction?.maxPriorityFeePerGas;
+    }
+    if ((resolved.transaction as any)?.gas) {
+      callRequest['gas'] = (resolved.transaction as any)?.gas;
+    }
+    if (resolved.transaction?.value) {
+      callRequest['value'] = resolved.transaction?.value;
+    }
+    if (resolved.transaction?.accessList) {
+      callRequest['accessList'] = resolved.transaction?.accessList;
+    }
+
+    const data = resolved.blockHash
+      ? await (this.api.rpc as any).eth.estimateGas(callRequest, resolved.blockHash)
+      : await (this.api.rpc as any).eth.estimateGas(callRequest);
+
+    return data;
   };
 
   /**
