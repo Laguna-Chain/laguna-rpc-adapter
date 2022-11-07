@@ -672,19 +672,34 @@ export abstract class BaseProvider extends AbstractProvider {
       blockHash: this._getBlockHash(blockTag)
     });
 
-    const callRequest: CallRequest = {
-      from: resolved.transaction.from,
-      to: resolved.transaction.to,
-      gasLimit: resolved.transaction.gasLimit?.toBigInt(),
-      storageLimit: undefined,
-      value: resolved.transaction.value?.toBigInt(),
-      data: resolved.transaction.data,
-      accessList: resolved.transaction.accessList
+    const callRequest: any = {
+      nonce: transaction.nonce,
+      gasPrice: resolved.transaction?.gasPrice,
+      input: resolved.transaction.data
     };
 
+    if (resolved.transaction?.value) {
+      callRequest['value'] = resolved.transaction?.value;
+    }
+    if (resolved.transaction?.maxFeePerGas) {
+      callRequest['maxFeePerGas'] = resolved.transaction?.maxFeePerGas;
+    }
+    if (resolved.transaction?.maxPriorityFeePerGas) {
+      callRequest['maxPriorityFeePerGas'] = resolved.transaction?.maxPriorityFeePerGas;
+    }
+    if ((resolved.transaction as any)?.gas) {
+      callRequest['gas'] = (resolved.transaction as any)?.gas;
+    }
+    if (resolved.transaction?.value) {
+      callRequest['value'] = resolved.transaction?.value;
+    }
+    if (resolved.transaction?.accessList) {
+      callRequest['accessList'] = resolved.transaction?.accessList;
+    }
+
     const data = resolved.blockHash
-      ? await (this.api.rpc as any).evm.call(callRequest, resolved.blockHash)
-      : await (this.api.rpc as any).evm.call(callRequest);
+      ? await (this.api.rpc as any).eth.call(callRequest, resolved.blockHash)
+      : await (this.api.rpc as any).eth.call(callRequest);
 
     return data.toHex();
   };
@@ -1430,7 +1445,7 @@ export abstract class BaseProvider extends AbstractProvider {
       tx[key] = Promise.resolve(values[key]).then((v) => (v ? this._getAddress(v) : null));
     });
 
-    ['gasLimit', 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas', 'value'].forEach((key) => {
+    ['gasLimit', 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas', 'value', 'gas'].forEach((key) => {
       if (values[key] === null || values[key] === undefined) {
         return;
       }
@@ -1981,7 +1996,6 @@ export abstract class BaseProvider extends AbstractProvider {
       ...result,
       from: transactionData.from
     } as TX;
-
   };
 
   getTransactionByBlockNumberAndIndex = async (blockNumber: number, index: number): Promise<TX | null> => {
@@ -2006,7 +2020,6 @@ export abstract class BaseProvider extends AbstractProvider {
       ...result,
       from: transactionData.from
     } as TX;
-
   };
 
   on = (eventName: EventType, listener: Listener): Provider => throwNotImplemented('on');
